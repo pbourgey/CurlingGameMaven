@@ -10,6 +10,7 @@ Pour installer toutes les dépendances :
 - Le convertir en projet Maven en faisant    -> clic droit -> configure -> Convertir en projet Maven
 - modifier le pom.xml de sorte à ce qu'il ressemble à celui actuel (ajout des dépendances et des configurations de build)
 - ajouter "requires opencv;" dans le fichier module-info.java
+- ajouter "requires java.desktop;" dans le fichier module-info.java
 
 
 
