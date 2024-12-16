@@ -33,7 +33,6 @@ public class VideoCaptureApp {
             return;
         }
         
-        
         frame = new JFrame("Live Stream");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(960, 720);
@@ -81,23 +80,11 @@ public class VideoCaptureApp {
 	                    e.printStackTrace();
 	                }
 	            }
-                if (camera.read(frameMat)) {
-                    
-                    Imgproc.resize(frameMat, frameMat, new Size(960, 720));
-                    
-                    
-                    
-                    ImageProcessing processor = new ImageProcessing(frameMat);
 
-                    Mat binaryImg = processor.preprocessImage();
-                    MatOfPoint largestContour = processor.findLargestContour(binaryImg);
-                    Point[] corners = processor.findCorners(largestContour);
-                    Mat warpedImg = processor.warpImage(corners);
-                    Imgcodecs.imwrite("result.jpg", warpedImg);
-                    double distance = processor.detectObjectsAndCalculateDistance(warpedImg);
-                    System.out.println("Distance between objects: " + distance + " pixels");
-                    
-                    
+                if (camera.read(frameMat)) {
+
+    	           
+                    Imgproc.resize(frameMat, frameMat, new Size(960, 720));
                     
                     Imgcodecs.imwrite("captured\\captured".concat(String.valueOf(numPic)).concat(".jpg"), frameMat);
                     numPic++;

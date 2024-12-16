@@ -14,135 +14,76 @@ public class ImageProcessing {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
-    private Mat img;
-    private Mat grayImg;
+    public static void main(String[] args) {
+        // Charger la bibliothèque native OpenCV
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-  
-    public ImageProcessing(String imagePath) {
-        this.img = Imgcodecs.imread(imagePath);
-        this.grayImg = new Mat();
-        Imgproc.cvtColor(img, grayImg, Imgproc.COLOR_BGR2GRAY);
-    }
+        // Charger l'image dans un objet Mat (remplacez par votre chemin d'image)
+        Mat image = Imgcodecs.imread("C:\\Users\\Pierre\\eclipse-workspace\\CurlingGameMaven\\nice_capture\\captured8.jpg", Imgcodecs.IMREAD_COLOR);
+        if (image.empty()) {
+            System.out.println("Erreur : Impossible de charger l'image.");
+            return;
+        }
 
-    
-    public ImageProcessing(Mat mat) {
-        this.img = mat;
-        this.grayImg = new Mat();
-        Imgproc.cvtColor(img, grayImg, Imgproc.COLOR_BGR2GRAY);
-    }
-  
-    public Mat preprocessImage() {
-        Mat binaryImg = new Mat();
-        Imgproc.threshold(grayImg, binaryImg, 120, 255, Imgproc.THRESH_BINARY);
-        Imgcodecs.imwrite("thresh.jpg", binaryImg);
-        Imgproc.morphologyEx(binaryImg, binaryImg, Imgproc.MORPH_CLOSE,
-        		Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(10, 10)));
-        Imgcodecs.imwrite("close.jpg", binaryImg);
-        return binaryImg;
-    }
+        // Convertir en niveaux de gris
+        Mat gray = new Mat();
+        Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
 
+        // Appliquer un flou pour réduire le bruit
+        Imgproc.GaussianBlur(gray, gray, new Size(9, 9), 2, 2);
 
-    public MatOfPoint findLargestContour(Mat binaryImg) {
-        List<MatOfPoint> contours = new ArrayList<>();
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(binaryImg, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        // Détecter les cercles avec HoughCircles
+        Mat circles = new Mat();
+        Imgproc.HoughCircles(
+            gray,
+            circles,
+            Imgproc.HOUGH_GRADIENT,
+            1.0,
+            (double)gray.rows() / 8, // Distance minimale entre les centres de cercles
+            100.0, // Seuil supérieur pour le détecteur de bords Canny
+            30.0,  // Seuil d'accumulateur pour les centres de cercles
+            10,    // Rayon minimum
+            100    // Rayon maximum
+        );
 
-        double maxArea = 0;
-        MatOfPoint largestContour = null;
-        for (MatOfPoint contour : contours) {
-            double area = Imgproc.contourArea(contour);
-            if (area > maxArea) {
-                maxArea = area;
-                largestContour = contour;
+        // Trouver le cercle le plus "circulaire"
+        double maxRoundness = 0;
+        Point bestCenter = null;
+        double bestRadius = 0;
+
+        for (int i = 0; i < circles.cols(); i++) {
+            double[] data = circles.get(0, i);
+            if (data == null) continue;
+
+            double centerX = data[0];
+            double centerY = data[1];
+            double radius = data[2];
+
+            // Vérifier la "circularité" : ici, nous utilisons le rayon comme approximation
+            double roundness = Math.PI * radius * radius;
+            if (roundness > maxRoundness) {
+                maxRoundness = roundness;
+                bestCenter = new Point(centerX, centerY);
+                bestRadius = radius;
             }
         }
-        return largestContour;
-    }
 
-    public Point[] findCorners(MatOfPoint largestContour) {
-        MatOfInt hull = new MatOfInt();
-        Imgproc.convexHull(largestContour, hull);
-
-        List<Point> hullPoints = new ArrayList<>();
-        for (int i : hull.toArray()) {
-            hullPoints.add(largestContour.toList().get(i));
+        // Dessiner le meilleur cercle trouvé sur l'image d'origine
+        if (bestCenter != null) {
+            Imgproc.circle(image, bestCenter, (int)bestRadius, new Scalar(0, 255, 0), 3);
+            Imgproc.rectangle(
+                image,
+                new Point(bestCenter.x - bestRadius, bestCenter.y - bestRadius),
+                new Point(bestCenter.x + bestRadius, bestCenter.y + bestRadius),
+                new Scalar(255, 0, 0),
+                2
+            );
+            System.out.println("Cercle le plus circulaire trouvé : Centre = " + bestCenter + ", Rayon = " + bestRadius);
+        } else {
+            System.out.println("Aucun cercle détecté.");
         }
 
-   
-        Point center = new Point(0, 0);
-        for (Point p : hullPoints) {
-            center.x += p.x;
-            center.y += p.y;
-        }
-        center.x /= hullPoints.size();
-        center.y /= hullPoints.size();
-
-    
-        Point topLeft = new Point(Double.MAX_VALUE, Double.MAX_VALUE);
-        Point topRight = new Point(Double.MIN_VALUE, Double.MAX_VALUE);
-        Point bottomLeft = new Point(Double.MAX_VALUE, Double.MIN_VALUE);
-        Point bottomRight = new Point(Double.MIN_VALUE, Double.MIN_VALUE);
-
-        for (Point p : hullPoints) {
-            if (p.x <= center.x && p.y <= center.y && p.y < topLeft.y) topLeft = p;
-            if (p.x > center.x && p.y <= center.y && p.y < topRight.y) topRight = p;
-            if (p.x <= center.x && p.y > center.y && p.y > bottomLeft.y) bottomLeft = p;
-            if (p.x > center.x && p.y > center.y && p.y > bottomRight.y) bottomRight = p;
-        }
-        return new Point[]{topLeft, topRight, bottomLeft, bottomRight};
-    }
-
-    public Mat warpImage(Point[] corners) {
-        MatOfPoint2f srcPoints = new MatOfPoint2f(corners);
-        MatOfPoint2f dstPoints = new MatOfPoint2f(
-                new Point(0, 0),
-                new Point(2970, 0),
-                new Point(0, 2100),
-                new Point(2970, 2100)
-        );
-        Mat transform = Imgproc.getPerspectiveTransform(srcPoints, dstPoints);
-
-        Mat warpedImg = new Mat();
-        Imgproc.warpPerspective(img, warpedImg, transform, new Size(2970, 2100));
-        return warpedImg;
-    }
-
-
-    public double detectObjectsAndCalculateDistance(Mat warpedImg) {
-        Mat binarizedImg = new Mat();
-        Imgproc.adaptiveThreshold(grayImg, binarizedImg, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C,
-                Imgproc.THRESH_BINARY_INV, 11, 2);
-
-        List<MatOfPoint> objectContours = new ArrayList<>();
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(binarizedImg, objectContours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-     
-        objectContours.sort((c1, c2) -> Double.compare(Imgproc.contourArea(c2), Imgproc.contourArea(c1)));
-
-        if (objectContours.size() < 2) {
-            throw new IllegalStateException("Not enough objects detected.");
-        }
-
-        Point jetonCenter = Imgproc.boundingRect(objectContours.get(0)).tl();
-        Point cibleCenter = Imgproc.boundingRect(objectContours.get(1)).tl();
-
-   
-        return Math.sqrt(Math.pow(jetonCenter.x - cibleCenter.x, 2) + Math.pow(jetonCenter.y - cibleCenter.y, 2));
-    }
-
- 
-    public static void main(String[] args) {
-
-        ImageProcessing processor = new ImageProcessing("C:\\info_telecom\\proj_info_fise2\\hockeyAR\\nice_capture\\captured18.jpg");
-
-        Mat binaryImg = processor.preprocessImage();
-        MatOfPoint largestContour = processor.findLargestContour(binaryImg);
-        Point[] corners = processor.findCorners(largestContour);
-        Mat warpedImg = processor.warpImage(corners);
-        Imgcodecs.imwrite("result.jpg", warpedImg);
-        double distance = processor.detectObjectsAndCalculateDistance(warpedImg);
-        System.out.println("Distance between objects: " + distance + " pixels");
-        
+        // Enregistrer l'image résultante (avec le cercle dessiné)
+        Imgcodecs.imwrite("output_image.jpg", image);
     }
 }
