@@ -4,16 +4,17 @@ import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
 public class ImageProcessing {
+
     static {
         // Load OpenCV library
         System.setProperty("java.library.path", "C:\\Users\\Tom\\Documents\\TSE\\S7 - Projet Info\\opencv\\build\\java\\x64");
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
-    public static Mat processImage(Mat image) {
+    public static ImageProcessingResult processImage(Mat image) {
         if (image.empty()) {
             System.out.println("Error: The provided image is empty.");
-            return image;
+            return new ImageProcessingResult(image, null, 0);
         }
 
         // Convert to grayscale
@@ -70,11 +71,13 @@ public class ImageProcessing {
                     2
             );
             System.out.println("Most circular circle found: Center = " + bestCenter + ", Radius = " + bestRadius);
+
         } else {
             System.out.println("No circles detected.");
         }
 
         // Return the resulting image (with the circle drawn)
-        return image;
+        return new ImageProcessingResult(image, bestCenter, bestRadius);
     }
+
 }

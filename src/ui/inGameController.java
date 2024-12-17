@@ -1,6 +1,7 @@
 package ui;
 
 import ImageProcessing.ImageProcessing;
+import ImageProcessing.ImageProcessingResult;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -15,6 +16,7 @@ import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.core.Point;
 
 import java.io.ByteArrayInputStream;
 
@@ -59,8 +61,11 @@ public class inGameController {
                             capture.read(frame);
                             if (!frame.empty()) {
                                 // Process the frame using ImageProcessing
-                                Mat processedFrame = ImageProcessing.processImage(frame);
-                                Imgproc.cvtColor(processedFrame, processedFrame, Imgproc.COLOR_BGR2RGB);
+                                ImageProcessingResult res = ImageProcessing.processImage(frame);
+                                Mat processedFrame = res.getImage();
+                                Point center = res.getCenter();
+                                double radius = res.getRadius();
+                                // Imgproc.cvtColor(processedFrame, processedFrame, Imgproc.COLOR_BGR2RGB);
                                 Image imageToShow = mat2Image(processedFrame);
                                 Platform.runLater(() -> videoView.setImage(imageToShow));
                             }
