@@ -4,25 +4,25 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 
 public class ImageProcessingResult {
-    private Mat image;
-    private Point center;
-    private double radius;
+    private static Mat image;
+    private static Point center;
+    private static double radius;
 
     public ImageProcessingResult(Mat image, Point center, double radius) {
-        this.image = image;
-        this.center = center;
-        this.radius = radius;
+        ImageProcessingResult.image = image;
+        ImageProcessingResult.center = center;
+        ImageProcessingResult.radius = radius;
     }
 
-    public Mat getImage() {
+    public static Mat getImage() {
         return image;
     }
 
-    public Point getCenter() {
+    public static Point getCenter() {
         return center;
     }
 
-    public double getRadius() {
+    public static double getRadius() {
         return radius;
     }
 }

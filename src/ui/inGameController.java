@@ -1,5 +1,6 @@
 package ui;
 
+import java.lang.Math;
 import ImageProcessing.ImageProcessing;
 import ImageProcessing.ImageProcessingResult;
 import javafx.application.Platform;
@@ -9,6 +10,8 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -17,6 +20,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.core.Point;
+import javafx.geometry.Pos;
 
 import java.io.ByteArrayInputStream;
 
@@ -35,13 +39,25 @@ public class inGameController {
 
     @FXML
     private ImageView videoView;
+    
+    @FXML
+    private Rectangle rectangleLaunch;
+    
+    @FXML
+    private StackPane stackPane;
 
     private VideoCapture capture;
     private Mat frame;
     private boolean cameraActive;
+    private boolean isLaunch;
+    private boolean tempState;
+    Point p_1;
+    Point temp;
+    Point p;
 
     @FXML
     public void initialize() {
+        StackPane.setAlignment(rectangleLaunch, Pos.CENTER_LEFT);
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         capture = new VideoCapture();
         frame = new Mat();
@@ -62,12 +78,23 @@ public class inGameController {
                             if (!frame.empty()) {
                                 // Process the frame using ImageProcessing
                                 ImageProcessingResult res = ImageProcessing.processImage(frame);
-                                Mat processedFrame = res.getImage();
-                                Point center = res.getCenter();
-                                double radius = res.getRadius();
+                                Mat processedFrame = ImageProcessingResult.getImage();
+                                Point center = ImageProcessingResult.getCenter();
+                                double radius = ImageProcessingResult.getRadius();
                                 // Imgproc.cvtColor(processedFrame, processedFrame, Imgproc.COLOR_BGR2RGB);
                                 Image imageToShow = mat2Image(processedFrame);
                                 Platform.runLater(() -> videoView.setImage(imageToShow));
+                                
+                                if((temp = ImageProcessingResult.getCenter())!=null) {
+                                	p_1=p;
+                                	p=temp;
+                                	tempState=isLaunch;
+                                	isLaunch=isLaunch(isLaunch, p.x);
+                                	
+                                	if((isLaunch!=tempState)&&(java.lang.Math.sqrt((p.x - p_1.x)*(p.x - p_1.x)+(p.y - p_1.y)*(p.y - p_1.y))<5)) {
+                                		// à compléter
+                                	}
+                                }
                             }
                         }
                     }
@@ -90,6 +117,22 @@ public class inGameController {
         return new Image(new ByteArrayInputStream(buffer.toArray()));
     }
 
+    public boolean isLaunch(boolean bool, double x) {
+    	
+    	if(x>188) {
+    		if(!bool) {
+    			System.out.println("jeton lancé !");
+    		}
+    		return true;
+    	}else {
+    		if(bool) {
+    			System.out.println("jeton pret !");
+    		}
+    	}
+    	return false;
+    }
+    
+    
     @FXML
     public void onRestartButtonClick(ActionEvent event) {
         // Placeholder for game restart logic
