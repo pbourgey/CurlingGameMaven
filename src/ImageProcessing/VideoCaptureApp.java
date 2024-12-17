@@ -27,7 +27,7 @@ public class VideoCaptureApp {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         
-        camera = new VideoCapture(1);
+        camera = new VideoCapture(0);
         if (!camera.isOpened()) {
             System.out.println("Error: Could not open camera");
             return;
@@ -117,7 +117,7 @@ public class VideoCaptureApp {
     public static void main(String[] args) {
     	
     	   
-    	System.setProperty("java.library.path", "C:\\opencv\\opencv\\build\\java\\x64");
+    	System.setProperty("java.library.path", "C:\\Users\\Tom\\Documents\\TSE\\S7 - Projet Info\\opencv\\build\\java\\x64");
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         // Lancer l'application avec l'interface Swing
