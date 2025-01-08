@@ -2,21 +2,20 @@ package ui;
 
 import ImageProcessing.ImageProcessing;
 import ImageProcessing.ImageProcessingResult;
+import gameLogic.gameLogic;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
+import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
-import org.opencv.core.Point;
 
 import java.io.ByteArrayInputStream;
 
@@ -39,6 +38,9 @@ public class inGameController {
     private VideoCapture capture;
     private Mat frame;
     private boolean cameraActive;
+    private gameLogic game;
+    private Point detectedCenter;
+    private double detectedRadius;
 
     @FXML
     public void initialize() {
@@ -46,12 +48,21 @@ public class inGameController {
         capture = new VideoCapture();
         frame = new Mat();
         cameraActive = false;
+        game = new gameLogic(new Point(1200, 360)); // Initialize gameLogic with a target point
         startCamera();
+
+        // Add a listener to set up the key event handler once the scene is available
+        gameArea.sceneProperty().addListener((observable, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.setOnKeyPressed(this::handleKeyPress);
+                gameArea.requestFocus(); // Request focus for gameArea
+            }
+        });
     }
 
     private void startCamera() {
         if (!cameraActive) {
-            capture.open(1);
+            capture.open(0);
             if (capture.isOpened()) {
                 cameraActive = true;
                 Runnable frameGrabber = new Runnable() {
@@ -63,9 +74,14 @@ public class inGameController {
                                 // Process the frame using ImageProcessing
                                 ImageProcessingResult res = ImageProcessing.processImage(frame);
                                 Mat processedFrame = res.getImage();
-                                Point center = res.getCenter();
-                                double radius = res.getRadius();
-                                // Imgproc.cvtColor(processedFrame, processedFrame, Imgproc.COLOR_BGR2RGB);
+
+                                // Draw a cross at the target position
+                                Point target = game.getTarget();
+                                Imgproc.line(processedFrame, new Point(target.x - 10, target.y), new Point(target.x + 10, target.y), new Scalar(0, 0, 255), 2);
+                                Imgproc.line(processedFrame, new Point(target.x, target.y - 10), new Point(target.x, target.y + 10), new Scalar(0, 0, 255), 2);
+
+                                detectedCenter = res.getCenter();
+                                detectedRadius = res.getRadius();
                                 Image imageToShow = mat2Image(processedFrame);
                                 Platform.runLater(() -> videoView.setImage(imageToShow));
                             }
@@ -90,11 +106,32 @@ public class inGameController {
         return new Image(new ByteArrayInputStream(buffer.toArray()));
     }
 
+    private void handleKeyPress(KeyEvent event) {
+        switch (event.getCode()) {
+            case SPACE:
+                if (detectedCenter != null && detectedRadius > 0) {
+                    // Call throwToken function with the detected center and radius
+                    game.throwToken(detectedCenter, (int) detectedRadius);
+                    System.out.println("Space pressed");
+                    // Update the display with the score, current turn, and whose turn it is
+                    Platform.runLater(() -> {
+                        player1Score.setText("Player 1: " + game.getScorePlayer1());
+                        player2Score.setText("Player 2: " + game.getScorePlayer2());
+                        turnIndicator.setText("Turn: Player " + (game.getCurrentPlayer() + 1));
+                    });
+                }
+                event.consume();
+                break;
+            default:
+                break;
+        }
+    }
+
     @FXML
     public void onRestartButtonClick(ActionEvent event) {
         // Placeholder for game restart logic
         System.out.println("Game restarted!");
-        resetGameUI();
+        // resetGameUI();
     }
 
     @FXML

@@ -71,13 +71,11 @@ public class ImageProcessing {
                     2
             );
             System.out.println("Most circular circle found: Center = " + bestCenter + ", Radius = " + bestRadius);
-
         } else {
             System.out.println("No circles detected.");
         }
 
-        // Return the resulting image (with the circle drawn)
+        // Return the resulting image (with the circle and cross drawn)
         return new ImageProcessingResult(image, bestCenter, bestRadius);
     }
-
 }

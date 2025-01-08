@@ -46,7 +46,7 @@ public class gameLogic {
             currentPlayer = 0;
         }
 
-        if (currentPlayer == 1) {
+        if (currentPlayer == 0) {
             if (player1distance < player2distance) {
                 scorePlayer1++;
             } else {
@@ -84,6 +84,10 @@ public class gameLogic {
 
     public void setTarget(Point target) {
         this.target = target;
+    }
+
+    public Point getTarget() {
+        return target;
     }
 
 }
