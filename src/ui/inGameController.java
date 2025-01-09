@@ -3,19 +3,19 @@ package ui;
 import java.lang.Math;
 import ImageProcessing.ImageProcessing;
 import ImageProcessing.ImageProcessingResult;
+import gameLogic.gameLogic;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
+import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
@@ -39,10 +39,10 @@ public class inGameController {
 
     @FXML
     private ImageView videoView;
-    
+
     @FXML
     private Rectangle rectangleLaunch;
-    
+
     @FXML
     private StackPane stackPane;
 
@@ -52,12 +52,9 @@ public class inGameController {
     int nbImagesWoRefresh = 0;
     private Mat frame;
     private boolean cameraActive;
-    private boolean isLaunch;
-    private boolean tempState;
-    private boolean isSavedToken = true;
-    Point p_1;
-    Point temp;
-    Point p;
+    private gameLogic game;
+    private Point detectedCenter;
+    private double detectedRadius;
 
     @FXML
     public void initialize() {
@@ -66,7 +63,16 @@ public class inGameController {
         capture = new VideoCapture();
         frame = new Mat();
         cameraActive = false;
+        game = new gameLogic(new Point(1200, 360)); // Initialize gameLogic with a target point
         startCamera();
+
+        // Add a listener to set up the key event handler once the scene is available
+        gameArea.sceneProperty().addListener((observable, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.setOnKeyPressed(this::handleKeyPress);
+                gameArea.requestFocus(); // Request focus for gameArea
+            }
+        });
     }
 
     private void startCamera() {
@@ -79,10 +85,10 @@ public class inGameController {
                     public void run() {
                         while (cameraActive) {
                         	long startTime = System.currentTimeMillis();
-                            
+
             	            long elapsedTime = System.currentTimeMillis() - startTime;
             	            long sleepTime = refreshRateMs - elapsedTime;
-            	
+
             	            if (sleepTime > 0) {
             	                try {
             	                    Thread.sleep(sleepTime);
@@ -111,13 +117,16 @@ public class inGameController {
                             	}else {
                             		nbImagesWoRefresh++;
                             	}
+                                // Draw a cross at the target position
+                                Point target = game.getTarget();
+                                Imgproc.line(processedFrame, new Point(target.x - 10, target.y), new Point(target.x + 10, target.y), new Scalar(0, 0, 255), 2);
+                                Imgproc.line(processedFrame, new Point(target.x, target.y - 10), new Point(target.x, target.y + 10), new Scalar(0, 0, 255), 2);
+
                                 Point center = ImageProcessingResult.getCenter();
                                 // double radius = ImageProcessingResult.getRadius();
                                 // Imgproc.cvtColor(processedFrame, processedFrame, Imgproc.COLOR_BGR2RGB);
                             	Image imageToShow = mat2Image(frame);
                                 Platform.runLater(() -> videoView.setImage(imageToShow));
-                                
-                                
                             }
                         }
                     }
@@ -140,8 +149,29 @@ public class inGameController {
         return new Image(new ByteArrayInputStream(buffer.toArray()));
     }
 
+    private void handleKeyPress(KeyEvent event) {
+        switch (event.getCode()) {
+            case SPACE:
+                if (detectedCenter != null && detectedRadius > 0) {
+                    // Call throwToken function with the detected center and radius
+                    game.throwToken(detectedCenter, (int) detectedRadius);
+                    System.out.println("Space pressed");
+                    // Update the display with the score, current turn, and whose turn it is
+                    Platform.runLater(() -> {
+                        player1Score.setText("Player 1: " + game.getScorePlayer1());
+                        player2Score.setText("Player 2: " + game.getScorePlayer2());
+                        turnIndicator.setText("Turn: Player " + (game.getCurrentPlayer() + 1));
+                    });
+                }
+                event.consume();
+                break;
+            default:
+                break;
+        }
+    }
+
     public boolean isLaunch(boolean bool, double x) {
-    	
+
     	if(x>188) {
     		if(!bool) {
     			System.out.println("jeton lancé !");
@@ -155,13 +185,13 @@ public class inGameController {
     	}
     	return false;
     }
-    
-    
+
+
     @FXML
     public void onRestartButtonClick(ActionEvent event) {
         // Placeholder for game restart logic
         System.out.println("Game restarted!");
-        resetGameUI();
+        // resetGameUI();
     }
 
     @FXML

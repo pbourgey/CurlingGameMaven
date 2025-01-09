@@ -7,25 +7,16 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-
-<AnchorPane fx:id="gameArea" prefHeight="600.0" prefWidth="800.0" stylesheets="@mainStyle.css" xmlns="http://javafx.com/javafx/20.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.inGameController">
+<AnchorPane fx:id="gameArea" prefHeight="600.0" prefWidth="800.0" stylesheets="@mainStyle.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.inGameController">
     <!-- Main layout -->
     <VBox prefHeight="600.0" prefWidth="900.0" spacing="10.0">
         <!-- Title Section -->
         <Label alignment="CENTER" maxWidth="Infinity" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-alignment: center;" text="Curling Game" />
         <!-- Content Section -->
         <HBox spacing="20.0">
-        	<StackPane fx:id="stackPane">
-                <!-- ImageView -->
-                <ImageView fx:id="videoView" fitHeight="514.0" fitWidth="626.0" pickOnBounds="true" preserveRatio="true" />
-                <!-- Rectangle bleu transparent -->
-                <Rectangle fx:id="rectangleLaunch" width="188.0" height="470.0" fill="rgba(0, 0, 255, 0.1)" />
-
-            </StackPane>
+         <ImageView fx:id="videoView" fitHeight="514.0" fitWidth="626.0" pickOnBounds="true" preserveRatio="true" />
             <!-- Right Panel -->
             <VBox alignment="CENTER" prefWidth="250.0" spacing="10.0">
             <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="15.0">
