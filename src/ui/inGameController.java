@@ -47,10 +47,14 @@ public class inGameController {
     private StackPane stackPane;
 
     private VideoCapture capture;
+    int refreshRateMs = 100; // Ms entre 2 images camera
+    int refreshProcessing = 10; // Process toutes les X images
+    int nbImagesWoRefresh = 0;
     private Mat frame;
     private boolean cameraActive;
     private boolean isLaunch;
     private boolean tempState;
+    private boolean isSavedToken = true;
     Point p_1;
     Point temp;
     Point p;
@@ -74,27 +78,46 @@ public class inGameController {
                     @Override
                     public void run() {
                         while (cameraActive) {
+                        	long startTime = System.currentTimeMillis();
+                            
+            	            long elapsedTime = System.currentTimeMillis() - startTime;
+            	            long sleepTime = refreshRateMs - elapsedTime;
+            	
+            	            if (sleepTime > 0) {
+            	                try {
+            	                    Thread.sleep(sleepTime);
+            	                } catch (InterruptedException e) {
+            	                    e.printStackTrace();
+            	                }
+            	            }
                             capture.read(frame);
                             if (!frame.empty()) {
                                 // Process the frame using ImageProcessing
-                                ImageProcessingResult res = ImageProcessing.processImage(frame);
-                                Mat processedFrame = ImageProcessingResult.getImage();
+                            	if(nbImagesWoRefresh>=refreshProcessing) {
+                            		ImageProcessingResult res = ImageProcessing.processImage(frame);
+                            		Mat processedFrame = ImageProcessingResult.getImage();
+                            		if((temp = ImageProcessingResult.getCenter())!=null) {
+	                                	p_1=p;
+	                                	p=temp;
+	                                	tempState=isLaunch;
+	                                	isLaunch=isLaunch(isLaunch, p.x);
+	                                	if(!isSavedToken&&isLaunch&&(java.lang.Math.sqrt((p.x - p_1.x)*(p.x - p_1.x)+(p.y - p_1.y)*(p.y - p_1.y))<5)) {
+	                                		System.out.println("jeton enregistré");
+	                                		isSavedToken = true;
+	                                	}
+                                	}
+                                	// Image imageToShow = mat2Image(processedFrame);
+                            		nbImagesWoRefresh=0;
+                            	}else {
+                            		nbImagesWoRefresh++;
+                            	}
                                 Point center = ImageProcessingResult.getCenter();
-                                double radius = ImageProcessingResult.getRadius();
+                                // double radius = ImageProcessingResult.getRadius();
                                 // Imgproc.cvtColor(processedFrame, processedFrame, Imgproc.COLOR_BGR2RGB);
-                                Image imageToShow = mat2Image(processedFrame);
+                            	Image imageToShow = mat2Image(frame);
                                 Platform.runLater(() -> videoView.setImage(imageToShow));
                                 
-                                if((temp = ImageProcessingResult.getCenter())!=null) {
-                                	p_1=p;
-                                	p=temp;
-                                	tempState=isLaunch;
-                                	isLaunch=isLaunch(isLaunch, p.x);
-                                	
-                                	if((isLaunch!=tempState)&&(java.lang.Math.sqrt((p.x - p_1.x)*(p.x - p_1.x)+(p.y - p_1.y)*(p.y - p_1.y))<5)) {
-                                		// à compléter
-                                	}
-                                }
+                                
                             }
                         }
                     }
@@ -128,6 +151,7 @@ public class inGameController {
     		if(bool) {
     			System.out.println("jeton pret !");
     		}
+    		isSavedToken=false;
     	}
     	return false;
     }

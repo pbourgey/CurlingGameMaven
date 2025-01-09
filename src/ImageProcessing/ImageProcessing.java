@@ -61,6 +61,7 @@ public class ImageProcessing {
         }
 
         // Draw the best circle found on the original image
+        /*
         if (bestCenter != null) {
             Imgproc.circle(image, bestCenter, (int) bestRadius, new Scalar(0, 255, 0), 3);
             Imgproc.rectangle(
@@ -75,7 +76,7 @@ public class ImageProcessing {
         } else {
             //System.out.println("No circles detected.");
         }
-
+		*/
         // Return the resulting image (with the circle drawn)
         return new ImageProcessingResult(image, bestCenter, bestRadius);
     }
