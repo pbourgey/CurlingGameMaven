@@ -17,6 +17,7 @@ public class ImageProcessing {
             return new ImageProcessingResult(image, null, 0);
         }
 
+
         // Convert to grayscale
         Mat gray = new Mat();
         Imgproc.cvtColor(image, gray, Imgproc.COLOR_BGR2GRAY);
@@ -72,7 +73,7 @@ public class ImageProcessing {
             );
             System.out.println("Most circular circle found: Center = " + bestCenter + ", Radius = " + bestRadius);
         } else {
-            System.out.println("No circles detected.");
+            //System.out.println("No circles detected.");
         }
 
         // Return the resulting image (with the circle and cross drawn)

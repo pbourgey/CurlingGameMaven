@@ -48,13 +48,24 @@ public class inGameController {
 
     private VideoCapture capture;
     int refreshRateMs = 100; // Ms entre 2 images camera
-    int refreshProcessing = 10; // Process toutes les X images
+    int refreshProcessing = 4; // Process toutes les X images
     int nbImagesWoRefresh = 0;
     private Mat frame;
     private boolean cameraActive;
     private gameLogic game;
     private Point detectedCenter;
     private double detectedRadius;
+    private boolean isLaunch;
+    private boolean tempState;
+    private boolean isSavedToken = true;
+    Point p_1;
+    Point temp;
+    Point p;
+
+    @FXML
+    private Label currentRoundScore;
+
+    Mat processedFrame;
 
     @FXML
     public void initialize() {
@@ -63,8 +74,11 @@ public class inGameController {
         capture = new VideoCapture();
         frame = new Mat();
         cameraActive = false;
-        game = new gameLogic(new Point(1200, 360)); // Initialize gameLogic with a target point
+        game = new gameLogic(new Point(570, 237)); // Initialize gameLogic with a target point
         startCamera();
+
+        // Set the initial state of the turn indicator
+        updateTurnIndicator();
 
         // Add a listener to set up the key event handler once the scene is available
         gameArea.sceneProperty().addListener((observable, oldScene, newScene) -> {
@@ -77,7 +91,7 @@ public class inGameController {
 
     private void startCamera() {
         if (!cameraActive) {
-            capture.open(1);
+            capture.open(0);
             if (capture.isOpened()) {
                 cameraActive = true;
                 Runnable frameGrabber = new Runnable() {
@@ -101,7 +115,9 @@ public class inGameController {
                                 // Process the frame using ImageProcessing
                             	if(nbImagesWoRefresh>=refreshProcessing) {
                             		ImageProcessingResult res = ImageProcessing.processImage(frame);
-                            		Mat processedFrame = ImageProcessingResult.getImage();
+                            		processedFrame = ImageProcessingResult.getImage();
+                                    detectedCenter = res.getCenter();
+                                    detectedRadius = res.getRadius();
                             		if((temp = ImageProcessingResult.getCenter())!=null) {
 	                                	p_1=p;
 	                                	p=temp;
@@ -119,8 +135,20 @@ public class inGameController {
                             	}
                                 // Draw a cross at the target position
                                 Point target = game.getTarget();
-                                Imgproc.line(processedFrame, new Point(target.x - 10, target.y), new Point(target.x + 10, target.y), new Scalar(0, 0, 255), 2);
-                                Imgproc.line(processedFrame, new Point(target.x, target.y - 10), new Point(target.x, target.y + 10), new Scalar(0, 0, 255), 2);
+                                if (processedFrame != null) {
+                                    Imgproc.line(processedFrame, new Point(target.x - 10, target.y), new Point(target.x + 10, target.y), new Scalar(0, 0, 255), 2);
+                                    Imgproc.line(processedFrame, new Point(target.x, target.y - 10), new Point(target.x, target.y + 10), new Scalar(0, 0, 255), 2);
+
+                                    // Draw circles for player 1 throws
+                                    for (Point p : game.getPlayer1Positions()) {
+                                        Imgproc.circle(processedFrame, p, 25, new Scalar(74, 144, 226, 128), -1); // Blue with transparency
+                                    }
+
+                                    // Draw circles for player 2 throws
+                                    for (Point p : game.getPlayer2Positions()) {
+                                        Imgproc.circle(processedFrame, p, 25, new Scalar(226, 74, 74, 128), -1); // Red with transparency
+                                    }
+                                }
 
                                 Point center = ImageProcessingResult.getCenter();
                                 // double radius = ImageProcessingResult.getRadius();
@@ -153,15 +181,7 @@ public class inGameController {
         switch (event.getCode()) {
             case SPACE:
                 if (detectedCenter != null && detectedRadius > 0) {
-                    // Call throwToken function with the detected center and radius
-                    game.throwToken(detectedCenter, (int) detectedRadius);
-                    System.out.println("Space pressed");
-                    // Update the display with the score, current turn, and whose turn it is
-                    Platform.runLater(() -> {
-                        player1Score.setText("Player 1: " + game.getScorePlayer1());
-                        player2Score.setText("Player 2: " + game.getScorePlayer2());
-                        turnIndicator.setText("Turn: Player " + (game.getCurrentPlayer() + 1));
-                    });
+                    handleThrow();
                 }
                 event.consume();
                 break;
@@ -170,11 +190,54 @@ public class inGameController {
         }
     }
 
+    private void handleThrow(){
+        game.throwToken(detectedCenter, (int) detectedRadius);
+        Platform.runLater(() -> {
+            player1Score.setText(String.valueOf(game.getScorePlayer1()));
+            player2Score.setText(String.valueOf(game.getScorePlayer2()));
+            updateTurnIndicator();
+            updateCurrentRoundScore();
+            updateBackgroundColor();
+        });
+    }
+
+    private void updateCurrentRoundScore() {
+        int roundScore = game.getCurrentRoundScore();
+        currentRoundScore.setText(String.valueOf(Math.abs(roundScore)));
+        if (roundScore > 0) {
+            currentRoundScore.setStyle("-fx-text-fill: blue;");
+        } else if (roundScore < 0) {
+            currentRoundScore.setStyle("-fx-text-fill: red;");
+        } else {
+            currentRoundScore.setStyle("-fx-text-fill: white;");
+        }
+    }
+
+    private void updateTurnIndicator() {
+        int currentPlayer = game.getCurrentPlayer();
+        turnIndicator.setText("Player " + (currentPlayer + 1));
+        if (currentPlayer == 0) {
+            turnIndicator.setStyle("-fx-text-fill: #4a90e2;"); // Match background color
+        } else {
+            turnIndicator.setStyle("-fx-text-fill: #e24a4a;"); // Match background color
+        }
+    }
+
+    private void updateBackgroundColor() {
+        if (game.getCurrentPlayer() == 0) {
+            gameArea.setStyle("-fx-background-color: linear-gradient(to bottom, #4a90e2, #357ab7, #2a5c8a);");
+        } else {
+            gameArea.setStyle("-fx-background-color: linear-gradient(to bottom, #e24a4a, #b73535, #8a2a2a);");
+        }
+    }
+
+
     public boolean isLaunch(boolean bool, double x) {
 
     	if(x>188) {
     		if(!bool) {
     			System.out.println("jeton lancé !");
+                handleThrow();
     		}
     		return true;
     	}else {
