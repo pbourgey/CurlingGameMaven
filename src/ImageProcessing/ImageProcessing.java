@@ -7,7 +7,7 @@ public class ImageProcessing {
 
     static {
         // Load OpenCV library
-        System.setProperty("java.library.path", "C:\\Users\\Tom\\Documents\\TSE\\S7 - Projet Info\\opencv\\build\\java\\x64");
+        System.setProperty("java.library.path", "opencv\\build\\java\\x64");
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 

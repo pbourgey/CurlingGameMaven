@@ -88,9 +88,39 @@ public class gameLogic {
             scorePlayer2 += -roundScore;
         }
     }
+    
+    
+    
+    private void removeOverlappingTokens(Point newToken, double initialRadius) {
+    	if (currentPlayer == 0) {
+    		Iterator<Point> iterator2 = player2Positions.iterator();
+	        while (iterator2.hasNext()) {
+	            Point p = iterator2.next();
+	            if (distance(newToken, p) < initialRadius) {
+	                iterator2.remove();
+	                break;
+	            }
+	        }
+    	}
+        else {
+	        Iterator<Point> iterator1 = player1Positions.iterator();
+	        while (iterator1.hasNext()) {
+	            Point p = iterator1.next();
+	            if (distance(newToken, p) < initialRadius) {
+	                iterator1.remove();
+	                break;
+	            }
+	        }
+        }
+    }
+    
+    
 
     public void throwToken(Point center, Integer radius) {
         double throwDistance = distance(center, target);
+        
+
+        removeOverlappingTokens(center, radius);
 
         if (currentPlayer == 0) {
             player1Throws.add(throwDistance);

@@ -27,7 +27,7 @@ public class VideoCaptureApp {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         
-        camera = new VideoCapture(0);
+        camera = new VideoCapture(1);
         if (!camera.isOpened()) {
             System.out.println("Error: Could not open camera");
             return;

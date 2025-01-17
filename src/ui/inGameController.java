@@ -48,16 +48,18 @@ public class inGameController {
 
     private VideoCapture capture;
     int refreshRateMs = 100; // Ms entre 2 images camera
-    int refreshProcessing = 4; // Process toutes les X images
+    int refreshProcessing = 1; // Process toutes les X images
     int nbImagesWoRefresh = 0;
     private Mat frame;
     private boolean cameraActive;
     private gameLogic game;
     private Point detectedCenter;
+    private int initialRadius;
     private double detectedRadius;
     private boolean isLaunch;
     private boolean tempState;
     private boolean isSavedToken = true;
+    private long lastMovementTime = 0;
     Point p_1;
     Point temp;
     Point p;
@@ -91,12 +93,23 @@ public class inGameController {
 
     private void startCamera() {
         if (!cameraActive) {
-            capture.open(0);
+            capture.open(1);
             if (capture.isOpened()) {
                 cameraActive = true;
                 Runnable frameGrabber = new Runnable() {
                     @Override
                     public void run() {
+                    	if(cameraActive) {
+                    		while(initialRadius==0) {
+                    			capture.read(frame);
+	                    		ImageProcessingResult res = ImageProcessing.processImage(frame);
+	                    		processedFrame = ImageProcessingResult.getImage();
+	                    		initialRadius = (int) res.getRadius();
+	                    		Image imageToShow = mat2Image(frame);
+	                            Platform.runLater(() -> videoView.setImage(imageToShow));
+	                    		System.out.println("initialRadius : "+initialRadius);
+                    		}
+                    	}
                         while (cameraActive) {
                         	long startTime = System.currentTimeMillis();
 
@@ -123,10 +136,16 @@ public class inGameController {
 	                                	p=temp;
 	                                	tempState=isLaunch;
 	                                	isLaunch=isLaunch(isLaunch, p.x);
-	                                	if(!isSavedToken&&isLaunch&&(java.lang.Math.sqrt((p.x - p_1.x)*(p.x - p_1.x)+(p.y - p_1.y)*(p.y - p_1.y))<5)) {
-	                                		System.out.println("jeton enregistré");
-	                                		isSavedToken = true;
-	                                	}
+	                                	if (!isSavedToken && isLaunch && (Math.sqrt((p.x - p_1.x) * (p.x - p_1.x) + (p.y - p_1.y) * (p.y - p_1.y)) < 5)) {
+	                                        long currentTime = System.currentTimeMillis();
+	                                        if (currentTime - lastMovementTime >= 1000) {
+	                                            System.out.println("jeton enregistré");
+	                                            handleThrow();
+	                                            isSavedToken = true;
+	                                        }
+	                                    } else {
+	                                        lastMovementTime = System.currentTimeMillis();
+	                                    }
                                 	}
                                 	// Image imageToShow = mat2Image(processedFrame);
                             		nbImagesWoRefresh=0;
@@ -141,12 +160,12 @@ public class inGameController {
 
                                     // Draw circles for player 1 throws
                                     for (Point p : game.getPlayer1Positions()) {
-                                        Imgproc.circle(processedFrame, p, 25, new Scalar(74, 144, 226, 128), -1); // Blue with transparency
+                                        Imgproc.circle(processedFrame, p, initialRadius, new Scalar(74, 144, 226, 128), -1); // Blue with transparency
                                     }
 
                                     // Draw circles for player 2 throws
                                     for (Point p : game.getPlayer2Positions()) {
-                                        Imgproc.circle(processedFrame, p, 25, new Scalar(226, 74, 74, 128), -1); // Red with transparency
+                                        Imgproc.circle(processedFrame, p, initialRadius, new Scalar(226, 74, 74, 128), -1); // Red with transparency
                                     }
                                 }
 
@@ -237,7 +256,6 @@ public class inGameController {
     	if(x>188) {
     		if(!bool) {
     			System.out.println("jeton lancé !");
-                handleThrow();
     		}
     		return true;
     	}else {
