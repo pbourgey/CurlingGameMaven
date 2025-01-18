@@ -17,7 +17,7 @@ public class Main extends Application{
         scene.getStylesheets().add(Main.class.getResource("/ui/mainStyle.css").toExternalForm());
         stage.setScene(scene);
 
-        stage.setTitle("Hello!");
+        stage.setTitle("Curling Start Menu");
         stage.setScene(scene);
         stage.show();
     }
