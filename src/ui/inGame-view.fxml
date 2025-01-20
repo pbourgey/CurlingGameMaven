@@ -12,6 +12,7 @@
 <?import javafx.scene.text.Font?>
 
 
+<?import javafx.scene.text.Text?>
 <AnchorPane fx:id="gameArea" prefHeight="600.0" prefWidth="800.0" stylesheets="@mainStyle.css" xmlns="http://javafx.com/javafx/20.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.inGameController">
     <!-- Main layout -->
     <VBox prefHeight="600.0" prefWidth="900.0" spacing="10.0" alignment="CENTER">
@@ -49,8 +50,10 @@
                 </VBox>
                 <VBox alignment="BOTTOM_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="15.0">
                     <children>
+                        <!-- Status Text -->
+                        <Text fx:id="statusText" style="-fx-font-size: 14;" text="" textAlignment="CENTER" />
                         <!-- Buttons -->
-                        <Button fx:id="restartButton" onAction="#onRestartButtonClick" prefWidth="150.0" text="Restart" />
+                        <Button fx:id="pauseButton" onAction="#onPauseButtonClick" prefWidth="150.0" text="Pause" />
                         <Button fx:id="leaveButton" onAction="#onLeaveButtonClick" prefWidth="150.0" text="Leave Game" />
                     </children>
                 </VBox>

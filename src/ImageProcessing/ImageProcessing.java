@@ -71,7 +71,7 @@ public class ImageProcessing {
                     new Scalar(255, 0, 0),
                     2
             );
-            System.out.println("Most circular circle found: Center = " + bestCenter + ", Radius = " + bestRadius);
+            // System.out.println("Most circular circle found: Center = " + bestCenter + ", Radius = " + bestRadius);
         } else {
             //System.out.println("No circles detected.");
         }
