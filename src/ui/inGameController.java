@@ -122,7 +122,7 @@ public class inGameController {
     public void setGameSettings(int pointsToWin, int tokensPerRound) {
         this.pointsToWin = pointsToWin;
         this.tokensPerRound = tokensPerRound;
-        game = new gameLogic(new Point(1100, 500), pointsToWin, tokensPerRound);
+        game = new gameLogic(new Point(550, 240), pointsToWin, tokensPerRound);
 
         // Initialize game-related UI elements
         updateTurnIndicator();
@@ -206,10 +206,10 @@ public class inGameController {
                                     for (Point p : game.getPlayer2Positions()) {
                                         Imgproc.circle(processedFrame, p, initialRadius, new Scalar(56, 56, 250, 128), -1);
                                     }
-                                    Imgproc.line(processedFrame, new Point(target.x - 15, target.y), new Point(target.x + 15, target.y), new Scalar(0, 165, 255), 5);
-                                    Imgproc.line(processedFrame, new Point(target.x, target.y - 15), new Point(target.x, target.y + 15), new Scalar(0, 165, 255), 5);
-                                    Imgproc.line(processedFrame, new Point(target.x - 17, target.y), new Point(target.x + 17, target.y), new Scalar(0, 0, 0), 2);
-                                    Imgproc.line(processedFrame, new Point(target.x, target.y - 17), new Point(target.x, target.y + 17), new Scalar(0, 0, 0), 2);
+                                    Imgproc.line(processedFrame, new Point(target.x - 10, target.y), new Point(target.x + 10, target.y), new Scalar(0, 165, 255), 5);
+                                    Imgproc.line(processedFrame, new Point(target.x, target.y - 10), new Point(target.x, target.y + 10), new Scalar(0, 165, 255), 5);
+                                    Imgproc.line(processedFrame, new Point(target.x - 10, target.y), new Point(target.x + 10, target.y), new Scalar(0, 0, 0), 2);
+                                    Imgproc.line(processedFrame, new Point(target.x, target.y - 10), new Point(target.x, target.y + 10), new Scalar(0, 0, 0), 2);
                                 }
                                 Image imageToShow = mat2Image(frame);
                                 Platform.runLater(() -> videoView.setImage(imageToShow));
