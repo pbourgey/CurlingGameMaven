@@ -2,6 +2,9 @@ module CurlingGameMaven {
 	requires javafx.controls;
 	requires opencv;
 	requires java.desktop;
-	
-	opens application to javafx.graphics, javafx.fxml;
+	requires javafx.fxml;
+	requires java.logging;
+
+	opens ui to javafx.graphics, javafx.fxml;
+	opens application to javafx.fxml, javafx.graphics;
 }
