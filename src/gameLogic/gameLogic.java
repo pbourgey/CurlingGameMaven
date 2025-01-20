@@ -111,22 +111,32 @@ public class gameLogic {
     }
 
     private void removeOverlappingTokens(Point newToken, double initialRadius) {
-        if (currentPlayer == 0) {
-            for (int i = 0; i < player2Positions.size(); i++) {
-                if (distance(newToken, player2Positions.get(i)) < initialRadius) {
-                    player2Positions.remove(i);
-                    player2Throws.remove(i);
-                    break;
+    	if (currentPlayer == 0) {
+            boolean changed;
+            do {
+                changed = false;
+                for (int i = 0; i < player2Positions.size(); i++) {
+                    if (distance(newToken, player2Positions.get(i)) < initialRadius) {
+                        player2Positions.remove(i);
+                        player2Throws.remove(i);
+                        changed = true;
+                        break;
+                    }
                 }
-            }
+            } while (changed);
         } else {
-            for (int i = 0; i < player1Positions.size(); i++) {
-                if (distance(newToken, player1Positions.get(i)) < initialRadius) {
-                    player1Positions.remove(i);
-                    player1Throws.remove(i);
-                    break;
+            boolean changed;
+            do {
+                changed = false;
+                for (int i = 0; i < player1Positions.size(); i++) {
+                    if (distance(newToken, player1Positions.get(i)) < initialRadius) {
+                        player1Positions.remove(i);
+                        player1Throws.remove(i);
+                        changed = true;
+                        break;
+                    }
                 }
-            }
+            } while (changed);
         }
     }
 
