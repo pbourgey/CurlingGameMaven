@@ -14,11 +14,10 @@ Pour installer toutes les dépendances :
 
 
 
-Une fois toutes les dépendances renseignées il faut télécharger la version 4.5.1 windows64x de openCV en suivant ce lien : https://opencv.org/releases/
+Une fois toutes les dépendances renseignées :
 
-Placer le dossier dans un endroit adéquat (dans mon cas : "C:\opencv\", je vous conseille de choisir le même)
-
-Faire un clic droit sur le fichier .java qu'on veut exécuter dans l'IDE et sélectionner  ->run as->run configurations...
-Dans "arguments" -> "VM argument", écrire : "-Djava.library.path=C:\opencv\opencv\build\java\x64" pour indiquer le chemin vers le fichier .dll requis
-
-Changer le chemin en conséquence si vous n'avez pas placé le dossier au même endroit
+- Télécharger la version 4.5.1 windows64x (Source) de openCV en suivant ce lien : https://opencv.org/releases/
+- Placer le dossier dans le dossier racine du projet.
+- Faire un clic droit sur le fichier .java qu'on veut exécuter dans l'IDE et sélectionner  ->run as->run configurations...
+- Dans "arguments" -> "VM argument", écrire : "-Djava.library.path=.\opencv\build\java\x64" pour indiquer le chemin vers le fichier .dll requis
+- Changer le chemin en conséquence si vous n'avez pas placé le dossier au même endroit
