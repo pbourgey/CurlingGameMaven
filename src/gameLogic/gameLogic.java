@@ -29,11 +29,14 @@ public class gameLogic {
     // Win score variable
     private int winScore;
 
+    private int tokensPerRound;
+    private int maxCurrentRound;
+
     private double distance(Point center, Point target) {
         return Math.sqrt(Math.pow(center.x - target.x, 2) + Math.pow(center.y - target.y, 2));
     }
 
-    public gameLogic(Point initialTarget) {
+    public gameLogic(Point initialTarget, int winScore, int tokensPerRound) {
         this.target = initialTarget;
         this.scorePlayer1 = 0;
         this.scorePlayer2 = 0;
@@ -48,18 +51,20 @@ public class gameLogic {
         this.isGameOver = false;
         this.player1TokenCount = 0;
         this.player2TokenCount = 0;
-        this.winScore = 5; // Default win score
+        this.winScore = winScore;
+        this.tokensPerRound = tokensPerRound;
+        this.maxCurrentRound = 2*tokensPerRound;
     }
 
     private int determineNextPlayer() {
         if (throwsInTurn == 0) return 0;
-        if (throwsInTurn >= 6) return -1;
+        if (throwsInTurn >= maxCurrentRound) return -1;
 
         double bestPlayer1Distance = player1Throws.isEmpty() ? Double.MAX_VALUE : Collections.min(player1Throws);
         double bestPlayer2Distance = player2Throws.isEmpty() ? Double.MAX_VALUE : Collections.min(player2Throws);
 
-        if (player1TokenCount >= 3) return 1;
-        if (player2TokenCount >= 3) return 0;
+        if (player1TokenCount >= tokensPerRound) return 1;
+        if (player2TokenCount >= tokensPerRound) return 0;
 
         return bestPlayer1Distance < bestPlayer2Distance ? 1 : 0;
     }
@@ -143,7 +148,7 @@ public class gameLogic {
 
         throwsInTurn++;
 
-        if (throwsInTurn == 6) {
+        if (throwsInTurn == maxCurrentRound) {
             calculateScore();
             player1Throws.clear();
             player2Throws.clear();

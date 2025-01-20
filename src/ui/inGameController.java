@@ -9,6 +9,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
@@ -56,6 +57,24 @@ public class inGameController {
     @FXML
     private Text statusText;
 
+    @FXML
+    private Button decreaseRefreshRateButton;
+
+    @FXML
+    private Button increaseRefreshRateButton;
+
+    @FXML
+    private Label refreshRateLabel;
+
+    @FXML
+    private TextField frameRateTextField;
+
+    @FXML
+    private Text settingsTitleIg;
+
+    @FXML
+    private Text settingsValue2;
+
     private VideoCapture capture;
     int refreshRateMs = 0; // Ms entre 2 images camera
     int refreshProcessing = 0; // Process toutes les X images
@@ -75,6 +94,9 @@ public class inGameController {
     Point p;
     private boolean isPaused = false;
 
+    private int pointsToWin;
+    private int tokensPerRound;
+
     @FXML
     private Label currentRoundScore;
 
@@ -87,13 +109,6 @@ public class inGameController {
         capture = new VideoCapture();
         frame = new Mat();
         cameraActive = false;
-        game = new gameLogic(new Point(1100, 500)); // 570, 237 (target pour la camera du projet)
-                                                         // 1300, 387 (target pour la camera de mon tel)
-        startCamera();
-
-        // Set the initial state of the turn indicator
-        updateTurnIndicator();
-        updateBackgroundColor();
 
         // Add a listener to set up the key event handler once the scene is available
         gameArea.sceneProperty().addListener((observable, oldScene, newScene) -> {
@@ -104,6 +119,17 @@ public class inGameController {
         });
     }
 
+    public void setGameSettings(int pointsToWin, int tokensPerRound) {
+        this.pointsToWin = pointsToWin;
+        this.tokensPerRound = tokensPerRound;
+        game = new gameLogic(new Point(1100, 500), pointsToWin, tokensPerRound);
+
+        // Initialize game-related UI elements
+        updateTurnIndicator();
+        updateBackgroundColor();
+        startCamera();
+    }
+
     private void startCamera() {
         if (!cameraActive) {
             capture.open(1);
@@ -112,7 +138,7 @@ public class inGameController {
                 Runnable frameGrabber = new Runnable() {
                     @Override
                     public void run() {
-                    	if(cameraActive) {
+                        if (cameraActive) {
                             List<Integer> initialRadii = new ArrayList<>();
                             while (initialRadii.size() < 20) {
                                 capture.read(frame);
@@ -128,80 +154,64 @@ public class inGameController {
                                 Image imageToShow = mat2Image(frame);
                                 Platform.runLater(() -> videoView.setImage(imageToShow));
                                 System.out.println("Radius measured: " + radius);
-
                             }
                             updateStatusText("Ready to play!");
                             initialRadius = (int) initialRadii.stream().mapToInt(Integer::intValue).average().orElse(0);
                             System.out.println("initialRadius : " + initialRadius);
-                    	}
+                        }
                         while (cameraActive) {
-                        	long startTime = System.currentTimeMillis();
+                            long startTime = System.currentTimeMillis();
+                            long elapsedTime = System.currentTimeMillis() - startTime;
+                            long sleepTime = refreshRateMs - elapsedTime;
 
-            	            long elapsedTime = System.currentTimeMillis() - startTime;
-            	            long sleepTime = refreshRateMs - elapsedTime;
-
-            	            if (sleepTime > 0) {
-            	                try {
-            	                    Thread.sleep(sleepTime);
-            	                } catch (InterruptedException e) {
-            	                    e.printStackTrace();
-            	                }
-            	            }
+                            if (sleepTime > 0) {
+                                try {
+                                    Thread.sleep(sleepTime);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                             capture.read(frame);
                             if (!frame.empty()) {
-                                // Process the frame using ImageProcessing
-                            	if(nbImagesWoRefresh>=refreshProcessing) {
-                            		ImageProcessingResult res = ImageProcessing.processImage(frame);
-                            		processedFrame = ImageProcessingResult.getImage();
+                                if (nbImagesWoRefresh >= refreshProcessing) {
+                                    ImageProcessingResult res = ImageProcessing.processImage(frame);
+                                    processedFrame = ImageProcessingResult.getImage();
                                     detectedCenter = res.getCenter();
                                     detectedRadius = res.getRadius();
-                            		if((temp = ImageProcessingResult.getCenter())!=null) {
-	                                	p_1=p;
-	                                	p=temp;
-	                                	tempState=isLaunch;
-	                                	isLaunch=isLaunch(isLaunch, p.x);
-	                                	if (!isSavedToken && isLaunch && (Math.sqrt((p.x - p_1.x) * (p.x - p_1.x) + (p.y - p_1.y) * (p.y - p_1.y)) < 40)) {
-	                                        long currentTime = System.currentTimeMillis();
-	                                        if (currentTime - lastMovementTime >= 1000) {
-	                                            updateStatusText("Thrown registered!\n Put the token in the launch area");
-	                                            handleThrow();
-	                                            isSavedToken = true;
-	                                        }
-	                                    } else {
-	                                        lastMovementTime = System.currentTimeMillis();
-	                                    }
-                                	}
-                                	// Image imageToShow = mat2Image(processedFrame);
-                            		nbImagesWoRefresh=0;
-                            	}else {
-                            		nbImagesWoRefresh++;
-                            	}
-                                // Draw a cross at the target position
+                                    if ((temp = ImageProcessingResult.getCenter()) != null) {
+                                        p_1 = p;
+                                        p = temp;
+                                        tempState = isLaunch;
+                                        isLaunch = isLaunch(isLaunch, p.x);
+                                        if (!isSavedToken && isLaunch && (Math.sqrt((p.x - p_1.x) * (p.x - p_1.x) + (p.y - p_1.y) * (p.y - p_1.y)) < 40)) {
+                                            long currentTime = System.currentTimeMillis();
+                                            if (currentTime - lastMovementTime >= 1000) {
+                                                updateStatusText("Thrown registered!\n Put the token in the launch area");
+                                                handleThrow();
+                                                isSavedToken = true;
+                                            }
+                                        } else {
+                                            lastMovementTime = System.currentTimeMillis();
+                                        }
+                                    }
+                                    nbImagesWoRefresh = 0;
+                                } else {
+                                    nbImagesWoRefresh++;
+                                }
                                 Point target = game.getTarget();
                                 if (processedFrame != null) {
-
-
-                                    // Draw circles for player 1 throws
                                     for (Point p : game.getPlayer1Positions()) {
                                         Imgproc.circle(processedFrame, p, initialRadius, new Scalar(250, 56, 56, 128), -1);
                                     }
-
-                                    // Draw circles for player 2 throws
                                     for (Point p : game.getPlayer2Positions()) {
                                         Imgproc.circle(processedFrame, p, initialRadius, new Scalar(56, 56, 250, 128), -1);
                                     }
-
-                                    // Finally draw the cross over the points
                                     Imgproc.line(processedFrame, new Point(target.x - 15, target.y), new Point(target.x + 15, target.y), new Scalar(0, 165, 255), 5);
                                     Imgproc.line(processedFrame, new Point(target.x, target.y - 15), new Point(target.x, target.y + 15), new Scalar(0, 165, 255), 5);
                                     Imgproc.line(processedFrame, new Point(target.x - 17, target.y), new Point(target.x + 17, target.y), new Scalar(0, 0, 0), 2);
                                     Imgproc.line(processedFrame, new Point(target.x, target.y - 17), new Point(target.x, target.y + 17), new Scalar(0, 0, 0), 2);
                                 }
-
-                                Point center = ImageProcessingResult.getCenter();
-                                // double radius = ImageProcessingResult.getRadius();
-                                // Imgproc.cvtColor(processedFrame, processedFrame, Imgproc.COLOR_BGR2RGB);
-                            	Image imageToShow = mat2Image(frame);
+                                Image imageToShow = mat2Image(frame);
                                 Platform.runLater(() -> videoView.setImage(imageToShow));
                             }
                         }
@@ -238,22 +248,23 @@ public class inGameController {
         }
     }
 
-    public void updateStatusText(String text) {
+    private void updateStatusText(String text) {
         Platform.runLater(() -> {
             statusText.setText(text);
             statusText.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-alignment: center;");
 
-            // Determine the fill color based on the current player
             javafx.scene.paint.Color fillColor = game.getCurrentPlayer() == 0 ? javafx.scene.paint.Color.web("#187bef") : javafx.scene.paint.Color.web("#e30d0d");
             statusText.setFill(fillColor);
 
-            // Calculate a darker shade for the stroke color
             javafx.scene.paint.Color strokeColor = fillColor.darker();
             statusText.setStroke(strokeColor);
             statusText.setStrokeWidth(1);
 
-            // Add shadow effect for better contrast
             statusText.setEffect(new javafx.scene.effect.DropShadow(5, javafx.scene.paint.Color.BLACK));
+
+            // Update the styles of settingsTitleIg and settingsValue2
+            settingsTitleIg.setFill(fillColor);
+            settingsValue2.setFill(fillColor);
         });
     }
 
@@ -274,29 +285,28 @@ public class inGameController {
     }
 
     private void stopCamera() {
-        cameraActive = false;
-        capture.release();
+        if (cameraActive) {
+            cameraActive = false;
+            if (capture.isOpened()) {
+                capture.release();
+            }
+        }
     }
 
     private void displayFinalScore() {
         gameArea.getChildren().clear();
-
-        // Determine the winner and set the background color
         String winner = game.getScorePlayer1() >= game.getWinScore() ? "Player 1" : "Player 2";
         String backgroundColor = winner.equals("Player 1") ? "linear-gradient(to bottom, #4a90e2, #357ab7, #2a5c8a)" : "linear-gradient(to bottom, #e24a4a, #b73535, #8a2a2a)";
         String textColor = winner.equals("Player 1") ? "#187bef" : "#e30d0d";
         gameArea.setStyle("-fx-background-color: " + backgroundColor + ";");
 
-        // Create and style the final score label
         Label finalScoreLabel = new Label(game.getFinalScore());
         finalScoreLabel.setStyle("-fx-font-size: 72px; -fx-text-fill: " + textColor + "; -fx-font-weight: bold;");
 
-        // Create a StackPane to center the label
         StackPane stackPane = new StackPane(finalScoreLabel);
         stackPane.setAlignment(Pos.CENTER);
         stackPane.setPrefSize(gameArea.getWidth(), gameArea.getHeight());
 
-        // Add the StackPane to the game area
         gameArea.getChildren().add(stackPane);
     }
 
@@ -316,9 +326,9 @@ public class inGameController {
         int currentPlayer = game.getCurrentPlayer();
         turnIndicator.setText("Player " + (currentPlayer + 1));
         if (currentPlayer == 0) {
-            turnIndicator.setStyle("-fx-text-fill: #187bef;"); // Match background color
+            turnIndicator.setStyle("-fx-text-fill: #187bef;");
         } else {
-            turnIndicator.setStyle("-fx-text-fill: #e30d0d;"); // Match background color
+            turnIndicator.setStyle("-fx-text-fill: #e30d0d;");
         }
     }
 
@@ -330,32 +340,28 @@ public class inGameController {
         }
     }
 
-
     public boolean isLaunch(boolean bool, double x) {
-
-    	if(x>188) {
-    		if(!bool) {
+        if (x > 188) {
+            if (!bool) {
                 updateStatusText("Token thrown !!\n Wait for the token to land");
-    		}
-    		return true;
-    	}else {
-    		if(bool) {
+            }
+            return true;
+        } else {
+            if (bool) {
                 updateStatusText("Token ready !\n Throw the token");
-    		}
-    		isSavedToken=false;
-    	}
-    	return false;
+            }
+            isSavedToken = false;
+        }
+        return false;
     }
 
     @FXML
     public void onPauseButtonClick(ActionEvent event) {
         if (isPaused) {
-            // Unpause the game
             startCamera();
             pauseButton.setText("Pause");
             isPaused = false;
         } else {
-            // Pause the game
             stopCamera();
             pauseButton.setText("Unpause");
             isPaused = true;
@@ -364,14 +370,27 @@ public class inGameController {
 
     @FXML
     public void onLeaveButtonClick(ActionEvent event) {
-        // Placeholder for leaving the game
         System.out.println("Exiting the game...");
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-        stage.close(); // Close the game window
+        stage.close();
+    }
+
+
+    @FXML
+    public void onDecreaseRefreshRateClick(ActionEvent event) {
+        if (refreshRateMs > 0) {
+            refreshRateMs -= 10; // Decrease by 10 ms
+            settingsValue2.setText(String.valueOf(refreshRateMs));
+        }
+    }
+
+    @FXML
+    public void onIncreaseRefreshRateClick(ActionEvent event) {
+        refreshRateMs += 10; // Increase by 10 ms
+        settingsValue2.setText(String.valueOf(refreshRateMs));
     }
 
     private void resetGameUI() {
-        // Reset the UI elements to their default state
         player1Score.setText("Player 1: 0");
         player2Score.setText("Player 2: 0");
         turnIndicator.setText("Turn: Player 1");

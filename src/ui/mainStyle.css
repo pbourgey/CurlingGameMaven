@@ -81,3 +81,65 @@
     -fx-font-family: "Comic Sans MS", cursive; /* Fancy font */
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 10, 0, 2, 2); /* Shadow effect */
 }
+
+/* Style for the settings titles */
+.settings-title {
+    -fx-text-fill: white; /* White text */
+    -fx-font-size: 24px; /* Font size */
+    -fx-font-family: "Comic Sans MS", cursive; /* Fancy font */
+    -fx-font-weight: bold; /* Bold text */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 5, 0, 2, 2); /* Shadow effect */
+}
+
+/* Style for the settings titles */
+.settings-title-ig {
+    -fx-text-fill: white; /* White text */
+    -fx-font-size: 14px; /* Font size */
+    -fx-font-family: "Comic Sans MS", cursive; /* Fancy font */
+    -fx-font-weight: bold; /* Bold text */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 5, 0, 2, 2); /* Shadow effect */
+}
+
+/* Style for the settings buttons */
+.settings-button {
+    -fx-background-color: linear-gradient(to bottom, #4a90e2, #357ab7); /* Blue gradient */
+    -fx-text-fill: white; /* White text */
+    -fx-font-size: 20px; /* Font size */
+    -fx-font-family: "Comic Sans MS", cursive; /* Fancy font */
+    -fx-border-color: #1a33d8; /* Blue border */
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px; /* Rounded corners */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 3, 0, 2, 2); /* Shadow effect */
+}
+
+/* Style for the settings value labels */
+.settings-value {
+    -fx-text-fill: white; /* White text */
+    -fx-font-size: 20px; /* Font size */
+    -fx-font-family: "Comic Sans MS", cursive; /* Fancy font */
+    -fx-font-weight: bold; /* Bold text */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 5, 0, 2, 2); /* Shadow effect */
+}
+
+/* Style for the settings buttons */
+.settings-button2 {
+    -fx-background-color: linear-gradient(to bottom, #4a90e2, #357ab7); /* Blue gradient */
+    -fx-text-fill: white; /* White text */
+    -fx-font-size: 14px; /* Font size */
+    -fx-font-family: "Comic Sans MS", cursive; /* Fancy font */
+    -fx-border-color: #1a33d8; /* Blue border */
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px; /* Rounded corners */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 3, 0, 2, 2); /* Shadow effect */
+}
+
+/* Style for the settings value labels */
+.settings-value2 {
+    -fx-text-fill: white; /* White text */
+    -fx-font-size: 14px; /* Font size */
+    -fx-font-family: "Comic Sans MS", cursive; /* Fancy font */
+    -fx-font-weight: bold; /* Bold text */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 5, 0, 2, 2); /* Shadow effect */
+}
