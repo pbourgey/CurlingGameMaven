@@ -71,10 +71,15 @@ public class gameLogic {
 
     // Returns the current round score
     public int getCurrentRoundScore() {
-        if (player1Throws.isEmpty() || player2Throws.isEmpty()) return 0;
-
-        double bestPlayer1 = Collections.min(player1Throws);
-        double bestPlayer2 = Collections.min(player2Throws);
+        if (throwsInTurn < 2) return 0;
+        double bestPlayer1 = 100000;
+    	double bestPlayer2 = 100000;
+        if(!player1Throws.isEmpty()) {
+        	bestPlayer1 = Collections.min(player1Throws);
+        }
+        if(!player2Throws.isEmpty()) {
+        	bestPlayer2 = Collections.min(player2Throws);
+        }
 
         int points = 0;
         if (bestPlayer1 < bestPlayer2) {
